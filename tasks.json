@@ -1,0 +1,19 @@
+[
+  {
+    "id": "01",
+    "title": "Finish homework",
+    "priority": "High",
+    "completed": false,
+    "due_date": "2026-10-19",
+    "tags": ["Study"]
+  },
+
+  {
+    "id": "02",
+    "title": "Play football",
+    "priority": "low",
+    "completed": false,
+    "due_date": "2026-10-10",
+    "tags": ["Exercise"]
+  }
+]
