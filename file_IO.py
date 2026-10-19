@@ -30,24 +30,21 @@ def save_tasks(tasks, file_path="tasks.json"):
             saving_tasks.append(n)
         f.write(json.dumps(saving_tasks, ensure_ascii=False, indent=4))
     print("Tasks are successfully saved")
+    return True
 def exit_tasks(tasks):
     """程序终止前执行，询问用户是否要对文件进行保存操作"""
     while True:
         i = input("Do you want to save changes before exit? Please print [Yes] or [No]" )
         if i == "Yes":
             save_tasks(tasks)
-            break
+            return True
         elif i == "No":
             print("The tasks is not saved")
-            break
+            return True
         else:
             print("Please enter valid input")
 
 
-if __name__ == "__main__":
-    tasks = load_tasks()
-    save_tasks(tasks)
-    exit_tasks(tasks)
 
 
 
