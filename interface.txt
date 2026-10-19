@@ -1,0 +1,94 @@
+TO-DO LIST PROJECT — SHARED INTERFACES
+
+1. DATA STRUCTURE
+
+Each task is a dictionary containing:
+
+- id: unique positive integer
+- title: non-empty string
+- priority: "High", "Medium", or "Low"
+- completed: Boolean (True or False)
+- due_date: date string in YYYY-MM-DD format, or None
+- tags: list of strings
+
+The tasks variable is a list of task dictionaries.
+
+2. MEMBER 1 — FILE I/O
+
+save_tasks(tasks, filepath="tasks.json")
+Returns: True if successful, False if unsuccessful.
+
+load_tasks(filepath="tasks.json")
+Returns: a list of task dictionaries if successful, None if unsuccessful.
+
+Importing a file should not replace the current tasks until the user confirms.
+
+3. MEMBER 2 — ESSENTIAL TASK FUNCTIONS
+
+add_task(tasks, title, priority, due_date=None, tags=None)
+Returns: the new task dictionary if successful, None if unsuccessful.
+
+modify_task(tasks, task_id, new_info)
+Returns: True if successful, False if unsuccessful.
+
+delete_task(tasks, task_id)
+Returns: True if successful, False if unsuccessful.
+
+toggle_completed(tasks, task_id)
+Returns: True if successful, False if unsuccessful.
+
+set_priority(tasks, task_id, new_priority)
+Returns: True if successful, False if unsuccessful.
+
+4. MEMBER 3 — CLI
+
+main()
+Runs the main menu loop.
+
+view_all_tasks(tasks)
+Displays all tasks.
+
+The CLI handles user input and displays messages.
+
+5. MEMBER 4 — OPTIONAL FUNCTIONS
+
+filter_tasks(tasks, filter_type, condition)
+Returns: a list of matching tasks.
+
+sort_tasks(tasks, sort_type)
+Returns: a sorted list without changing the original list.
+
+get_statistics(tasks)
+Returns: a dictionary containing total, completed, uncompleted, and completion rate.
+
+6. MEMBER 5 — INPUT VALIDATION
+
+validate_title(value)
+Returns: a valid title string.
+
+validate_task_id(value)
+Returns: a valid positive integer ID.
+
+validate_priority(value)
+Returns: a normalized priority string.
+
+validate_due_date(value)
+Returns: a valid date string or None.
+
+validate_tags(value)
+Returns: a list of tag strings.
+
+validate_menu_choice(value)
+Returns: a valid menu choice.
+
+Validation functions raise ValueError for invalid input.
+They should not call input() or print().
+
+7. SHARED RULES
+
+- Function names and parameters must remain consistent.
+- Every current task must have a unique ID.
+- Priority values use consistent capitalization.
+- Data-processing functions do not handle CLI input/output.
+- Invalid input and file errors must be handled safely.
+- Filtering and sorting must not change the original task list.
