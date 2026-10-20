@@ -50,14 +50,12 @@ def view_all_tasks(tasks): # print all tasks in a formatted way
         print(f"ID: {task['id']}, Title: {task['title']}, Priority: {task['priority']}, Completed: {task['completed']}, Due Date: {task['due_date']}, Tags: {', '.join(task['tags'])}")
 
 
-def main(): # main loop of the program, handle user input and call corresponding functions
+def main():  # main loop of the program, handle user input and call corresponding functions
     tasks = load_tasks()
     has_change = False
     welcome_message()
-
     while True:
         opt = show_menu()
-
         if opt == "1":
             # Add task
             print("--- Add Task ---")
@@ -76,49 +74,73 @@ def main(): # main loop of the program, handle user input and call corresponding
         elif opt == "3":
             # Modify task
             print("--- Modify Task ---")
-            tid = int(input("Enter task ID to modify: "))
+            try:
+                tid = int(input("Enter task ID to modify: "))
+            except ValueError:
+                print("Error: Task ID must be integer!")
+                continue
             title = input("New title (enter to skip): ")
             prio = input("New priority (enter to skip): ")
             dued = input("New due date (enter to skip): ")
             tags_in = input("New tags (space split, enter to skip): ").split()
+            # 接口契约：core_logic.modify_task
+            # "" 代表不修改该字段；tags_in=[]代表不修改标签
             modify_task(tasks, tid, title, prio, dued, tags_in)
             has_change = True
 
         elif opt == "4":
             # Delete task
             print("--- Delete Task ---")
-            tid = int(input("Enter task ID to delete: "))
+            try:
+                tid = int(input("Enter task ID to delete: "))
+            except ValueError:
+                print("Error: Task ID must be integer!")
+                continue
             delete_task(tasks, tid)
             has_change = True
 
         elif opt == "5":
             # Toggle completed status
             print("--- Toggle Task Completion ---")
-            tid = int(input("Enter task ID: "))
+            try:
+                tid = int(input("Enter task ID: "))
+            except ValueError:
+                print("Error: Task ID must be integer!")
+                continue
             toggle_completed(tasks, tid)
             has_change = True
 
         elif opt == "6":
             # Set priority
             print("--- Set Task Priority ---")
-            tid = int(input("Enter task ID: "))
+            try:
+                tid = int(input("Enter task ID: "))
+            except ValueError:
+                print("Error: Task ID must be integer!")
+                continue
             new_p = input("Set priority (High/Medium/Low): ")
             set_priority(tasks, tid, new_p)
             has_change = True
 
         elif opt == "7":
-            # Filter tasks
+            # Filter tasks，调用子菜单
             print("--- Filter Tasks ---")
-            sub_opt = input("Filter type: ")
+            sub_opt = show_filter_submenu()
+            if sub_opt == "0":
+                print("Back to main menu.")
+                continue
             arg = input("Filter value: ")
             filtered_list = filter_tasks(tasks, sub_opt, arg)
             view_all_tasks(filtered_list)
 
         elif opt == "8":
-            # Sort tasks
+            # Sort tasks，调用子菜单
             print("--- Sort Tasks ---")
-            sort_opt = input("Sort type: ")
-            sorted_list = sort_tasks(tasks, sort_opt)
+            sort_sub_opt = show_sort_submenu()
+            if sort_sub_opt == "0":
+                print("Back to main menu.")
+                continue
+            sorted_list = sort_tasks(tasks, sort_sub_opt)
             view_all_tasks(sorted_list)
 
         elif opt == "9":
@@ -164,7 +186,6 @@ def main(): # main loop of the program, handle user input and call corresponding
             else:
                 print("No unsaved changes, program exit.")
                 break
-
         else:
             print("Invalid input! Please input number from 0-11.")
 
