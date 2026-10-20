@@ -1,5 +1,5 @@
 from task_operations import add_task, modify_task, delete_task, toggle_completed, set_priority
-from  import filter_tasks, sort_tasks, get_statistics
+from optional_functions import filter_tasks, sort_tasks, get_statistics
 from file_IO import load_tasks, save_tasks, import_tasks
 
 def welcome_message(): # print the welcome message
@@ -77,7 +77,7 @@ def main():  # main loop of the program, handle user input and call correspondin
             print("--- Modify Task ---")
             try:
                 tid = int(input("Enter task ID to modify: "))
-            except ValueError:
+            except:
                 print("Error: Task ID must be integer!")
                 continue
             title = input("New title (enter to skip): ")
@@ -92,7 +92,7 @@ def main():  # main loop of the program, handle user input and call correspondin
             print("--- Delete Task ---")
             try:
                 tid = int(input("Enter task ID to delete: "))
-            except ValueError:
+            except:
                 print("Error: Task ID must be integer!")
                 continue
             delete_task(tasks, tid)
@@ -103,7 +103,7 @@ def main():  # main loop of the program, handle user input and call correspondin
             print("--- Toggle Task Completion ---")
             try:
                 tid = int(input("Enter task ID: "))
-            except ValueError:
+            except:
                 print("Error: Task ID must be integer!")
                 continue
             toggle_completed(tasks, tid)
@@ -114,7 +114,7 @@ def main():  # main loop of the program, handle user input and call correspondin
             print("--- Set Task Priority ---")
             try:
                 tid = int(input("Enter task ID: "))
-            except ValueError:
+            except:
                 print("Error: Task ID must be integer!")
                 continue
             new_p = input("Set priority (High/Medium/Low): ")
