@@ -1,5 +1,6 @@
-from core_logic import add_task, modify_task, delete_task, toggle_completed, set_priority, filter_tasks, sort_tasks, get_statistics
-from data_io import load_tasks, save_tasks, import_tasks
+from task_operations import add_task, modify_task, delete_task, toggle_completed, set_priority
+from  import filter_tasks, sort_tasks, get_statistics
+from file_IO import load_tasks, save_tasks, import_tasks
 
 def welcome_message(): # print the welcome message
     print("Welcome to the Task Management System!")
@@ -83,8 +84,6 @@ def main():  # main loop of the program, handle user input and call correspondin
             prio = input("New priority (enter to skip): ")
             dued = input("New due date (enter to skip): ")
             tags_in = input("New tags (space split, enter to skip): ").split()
-            # 接口契约：core_logic.modify_task
-            # "" 代表不修改该字段；tags_in=[]代表不修改标签
             modify_task(tasks, tid, title, prio, dued, tags_in)
             has_change = True
 
