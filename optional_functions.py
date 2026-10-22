@@ -10,13 +10,13 @@ All functions in this module are pure data-processing functions:
 def filter_tasks(tasks, filter_type, condition):
     """Return tasks matching the specified condition.
 
-    Supported filter types:
+    Supported filter types (type name or CLI menu number):
         "id"        - match a task ID
         "title"     - match a title (case-insensitive)
-        "priority"  - match High, Medium, or Low (case-insensitive)
-        "completed" - match True or False
-        "due_date"  - match a YYYY-MM-DD string or None
-        "tags"      - include tasks containing the specified tag
+        "priority" / "2"  - match High, Medium, or Low (case-insensitive)
+        "completed" / "1" - match True or False
+        "due_date" / "3"  - match a YYYY-MM-DD string or None
+        "tags" / "4"      - include tasks containing the specified tag
 
     The original tasks list is not modified.
     """
@@ -28,6 +28,13 @@ def filter_tasks(tasks, filter_type, condition):
         raise ValueError("filter_type must be a string")
 
     normalized_type = filter_type.strip().lower()
+    filter_type_aliases = {
+        "1": "completed",
+        "2": "priority",
+        "3": "due_date",
+        "4": "tags",
+    }
+    normalized_type = filter_type_aliases.get(normalized_type, normalized_type)
     if normalized_type not in supported_types:
         raise ValueError(f"Unsupported filter type: {filter_type}")
 
@@ -66,17 +73,23 @@ def filter_tasks(tasks, filter_type, condition):
 def sort_tasks(tasks, sort_type):
     """Return a sorted copy of tasks without changing the original list.
 
-    Supported sort types:
-        "id"        - ascending numeric ID
+    Supported sort types (type name or CLI menu number):
+        "id" / "3"        - ascending numeric ID
         "title"     - alphabetical title order
-        "priority"  - High, Medium, then Low
+        "priority" / "1"  - High, Medium, then Low
         "completed" - uncompleted tasks, then completed tasks
-        "due_date"  - earliest date first; tasks without a date go last
+        "due_date" / "2"  - earliest date first; tasks without a date go last
     """
     if not isinstance(sort_type, str):
         raise ValueError("sort_type must be a string")
 
     normalized_type = sort_type.strip().lower()
+    sort_type_aliases = {
+        "1": "priority",
+        "2": "due_date",
+        "3": "id",
+    }
+    normalized_type = sort_type_aliases.get(normalized_type, normalized_type)
     priority_order = {"high": 0, "medium": 1, "low": 2}
 
     if normalized_type == "id":
