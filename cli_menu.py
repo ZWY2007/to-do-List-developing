@@ -57,15 +57,21 @@ def main():  # main loop of the program, handle user input and call correspondin
     welcome_message()
     while True:
         opt = show_menu()
+        
         if opt == "1":
             # Add task
             print("--- Add Task ---")
             title = input("Task title: ")
             priority = input("Priority (High/Medium/Low): ")
-            due_date = input("Due date(YYYY-MM-DD): ")
+            due_date = input("Due date(YYYY-MM-DD): ").strip()
+            # 空输入转为None
+            if due_date == "":
+                due_date = None
             tags = input("Tags(space-separated): ").split()
-            add_task(tasks, title, priority, due_date, tags)
-            has_change = True
+            success = add_task(tasks, title, priority, due_date, tags)
+            if success:
+                print("Task added successfully.")
+                has_change = True
 
         elif opt == "2":
             # View all tasks
@@ -80,12 +86,30 @@ def main():  # main loop of the program, handle user input and call correspondin
             except:
                 print("Error: Task ID must be integer!")
                 continue
-            title = input("New title (enter to skip): ")
-            prio = input("New priority (enter to skip): ")
-            dued = input("New due date (enter to skip): ")
-            tags_in = input("New tags (space split, enter to skip): ").split()
-            modify_task(tasks, tid, title, prio, dued, tags_in)
-            has_change = True
+            new_info = {}
+            fields = [
+                ("title", "New title (enter to skip): "),
+                ("priority", "New priority (enter to skip): "),
+            ]
+            for k, prompt in fields:
+                val = input(prompt).strip()
+                if val:
+                    new_info[k] = val
+            # due_date特殊处理,无论是否为空，都要传入payload，None表示空
+            due_val = input("New due date (YYYY-MM-DD, enter to skip): ").strip()
+            if due_val:
+                new_info["due_date"] = due_val
+            else:
+                new_info["due_date"] = None
+            tags = input("New tags (space split, enter to skip): ").split()
+            if tags:
+                new_info["tags"] = tags
+            success = modify_task(tasks, tid, new_info)
+            if success:
+                print("Task modified successfully.")
+                has_change = True
+            else:
+                print("Failed to modify task.")
 
         elif opt == "4":
             # Delete task
@@ -95,8 +119,10 @@ def main():  # main loop of the program, handle user input and call correspondin
             except:
                 print("Error: Task ID must be integer!")
                 continue
-            delete_task(tasks, tid)
-            has_change = True
+            success = delete_task(tasks, tid)
+            if success:
+                print("Task deleted successfully.")
+                has_change = True
 
         elif opt == "5":
             # Toggle completed status
@@ -106,8 +132,10 @@ def main():  # main loop of the program, handle user input and call correspondin
             except:
                 print("Error: Task ID must be integer!")
                 continue
-            toggle_completed(tasks, tid)
-            has_change = True
+            success = toggle_completed(tasks, tid)
+            if success:
+                print("Task completion status toggled.")
+                has_change = True
 
         elif opt == "6":
             # Set priority
@@ -118,8 +146,10 @@ def main():  # main loop of the program, handle user input and call correspondin
                 print("Error: Task ID must be integer!")
                 continue
             new_p = input("Set priority (High/Medium/Low): ")
-            set_priority(tasks, tid, new_p)
-            has_change = True
+            success = set_priority(tasks, tid, new_p)
+            if success:
+                print("Task priority set successfully.")
+                has_change = True
 
         elif opt == "7":
             # Filter tasks，调用子菜单
@@ -129,6 +159,11 @@ def main():  # main loop of the program, handle user input and call correspondin
                 print("Back to main menu.")
                 continue
             arg = input("Filter value: ")
+            if sub_opt == "1":  # sub_opt=1：按完成状态筛选
+                if arg.lower() in ["true", "yes", "1"]:
+                    arg = True   # 字符串 → 布尔True
+                elif arg.lower() in ["false", "no", "0"]:
+                    arg = False  # 字符串 → 布尔False
             filtered_list = filter_tasks(tasks, sub_opt, arg)
             view_all_tasks(filtered_list)
 
@@ -145,8 +180,9 @@ def main():  # main loop of the program, handle user input and call correspondin
         elif opt == "9":
             # Statistics
             print("--- Task Statistics ---")
-            total, finished, unfinished, rate = get_statistics(tasks)
-            print(f"Total:{total}, Completed:{finished}, Incomplete:{unfinished}, Rate:{rate:.1f}%")
+            stats = get_statistics(tasks)
+            print(f"Total:{stats['total']}, Completed:{stats['completed']}, Incomplete:{stats['uncompleted']}, Rate:{stats['completion_rate']:.1f}%")
+
 
         elif opt == "10":
             # Save manually
@@ -158,11 +194,13 @@ def main():  # main loop of the program, handle user input and call correspondin
             # Import tasks
             print("--- Import Tasks ---")
             file_path = input("Input file path: ")
-            import_tasks(tasks, file_path)
-            has_change = True
+            import_success = import_tasks(tasks, file_path)
+            if import_success:
+                print("Tasks imported successfully.")
+                has_change = True
 
         elif opt == "0":
-            # Exit with 3 options
+            # Exit
             if has_change:
                 print("You have unsaved changes!")
                 print("(1) Save and Exit")
