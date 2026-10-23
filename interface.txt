@@ -1,10 +1,13 @@
-TO-DO LIST PROJECT — SHARED INTERFACES
+TO-DO LIST PROJECT - SHARED INTERFACES
+Member 5 proposed alignment (based on Member 2's 2026-10-23 string-ID update)
 
 1. DATA STRUCTURE
 
 Each task is a dictionary containing:
 
-- id: unique positive integer
+- id: unique positive numeric STRING, e.g. "01", "02", "03"
+      Numeric equivalents such as "1" and "01" mean the SAME task ID.
+      New IDs are generated as strings with at least two digits.
 - title: non-empty string
 - priority: "High", "Medium", or "Low"
 - completed: Boolean (True or False)
@@ -13,7 +16,7 @@ Each task is a dictionary containing:
 
 The tasks variable is a list of task dictionaries.
 
-2. MEMBER 1 — FILE I/O
+2. MEMBER 1 - FILE I/O
 
 save_tasks(tasks, file_path="tasks.json")
 Returns: True if successful, False if unsuccessful.
@@ -21,9 +24,15 @@ Returns: True if successful, False if unsuccessful.
 load_tasks(file_path="tasks.json")
 Returns: a list of task dictionaries if successful, None if unsuccessful.
 
-Importing a file should not replace the current tasks until the user confirms.
+import_tasks(tasks, file_path)
+Intended behavior: imported tasks must be validated, then the user must
+confirm replacement; on success return the imported list, on cancellation
+or error keep/return the original list.
+NOTE: The current Member 1 implementation still validates integer IDs.
+This must be addressed during integration or by using Member 5's safe import
+helper. This document does not claim Member 1's code has already changed.
 
-3. MEMBER 2 — ESSENTIAL TASK FUNCTIONS
+3. MEMBER 2 - ESSENTIAL TASK FUNCTIONS
 
 add_task(tasks, title, priority, due_date=None, tags=None)
 Returns: the new task dictionary if successful, None if unsuccessful.
@@ -40,7 +49,9 @@ Returns: True if successful, False if unsuccessful.
 set_priority(tasks, task_id, new_priority)
 Returns: True if successful, False if unsuccessful.
 
-4. MEMBER 3 — CLI
+The task_id argument must be a positive numeric STRING.
+
+4. MEMBER 3 - CLI
 
 main()
 Runs the main menu loop.
@@ -48,47 +59,76 @@ Runs the main menu loop.
 view_all_tasks(tasks)
 Displays all tasks.
 
-The CLI handles user input and displays messages.
+The CLI handles user input, displays messages, and catches ValueError from
+validation functions. It uses each validator's RETURN VALUE.
+The CLI must not convert IDs to int before calling Member 2's functions.
+The existing load_tasks() failure (None) handling is already implemented.
 
-5. MEMBER 4 — OPTIONAL FUNCTIONS
+5. MEMBER 4 - OPTIONAL FUNCTIONS
 
 filter_tasks(tasks, filter_type, condition)
 Returns: a list of matching tasks.
+Accepts filter menu aliases "1" completed, "2" priority, "3" due_date,
+"4" tags; condition for completed must be Boolean.
 
 sort_tasks(tasks, sort_type)
 Returns: a sorted list without changing the original list.
+Accepts sort menu aliases "1" priority, "2" due_date, "3" id.
 
 get_statistics(tasks)
-Returns: a dictionary containing total, completed, uncompleted, and completion rate.
+Returns: a dictionary containing total, completed, uncompleted, and
+completion rate.
 
-6. MEMBER 5 — INPUT VALIDATION
+6. MEMBER 5 - INPUT VALIDATION
 
 validate_title(value)
-Returns: a valid title string.
+Returns: a non-empty title string.
 
 validate_task_id(value)
-Returns: a valid positive integer ID.
+Returns: a positive numeric STRING ID, e.g. "1" -> "01", "01" -> "01".
+Only ID FORMAT is checked, not whether the task exists.
 
 validate_priority(value)
-Returns: a normalized priority string.
+Returns: one of "High", "Medium", "Low".
 
 validate_due_date(value)
-Returns: a valid date string or None.
+Returns: a valid date string or None for blank/None.
 
 validate_tags(value)
-Returns: a list of tag strings.
+Returns: a list of tag strings; blank/None -> [].
 
-validate_menu_choice(value)
-Returns: a valid menu choice.
+validate_menu_choice(value, allowed_choices=None)
+Returns: the chosen number as a string.
+Without allowed_choices: main menu choices "0" to "11".
+Filter submenu: pass ["0", "1", "2", "3", "4"].
+Sort submenu: pass ["0", "1", "2", "3"].
+
+validate_completed_filter(value)
+Returns: Boolean. Accepts yes/no, true/false, 1/0, y/n (case-insensitive).
+
+validate_task_list(value)
+Checks a list of imported task dictionaries, rejects invalid and duplicate
+IDs, and returns a validated NEW list (does not mutate original data).
 
 Validation functions raise ValueError for invalid input.
-They should not call input() or print().
+They do not call input() or print().
 
-7. SHARED RULES
+7. MEMBER 5 - OPTIONAL INTEGRATION HELPERS
+
+read_validated_tasks(file_path)
+Reads JSON and returns a validated list; raises ValueError / file errors.
+
+safe_import_tasks(current_tasks, file_path, confirmed)
+Returns original tasks when not confirmed; when confirmed, reads and validates
+the file then returns a new list. CLI must catch errors and retain the original.
+This is an OPTIONAL integration alternative to changing Member 1's code.
+
+8. SHARED RULES
 
 - Function names and parameters must remain consistent.
-- Every current task must have a unique ID.
+- Every current task must have a unique ID by its numeric value.
 - Priority values use consistent capitalization.
-- Data-processing functions do not handle CLI input/output.
+- Data-processing and validation functions do not handle CLI input/output.
 - Invalid input and file errors must be handled safely.
 - Filtering and sorting must not change the original task list.
+- The main branch must not be overwritten without the agreed integration step.
