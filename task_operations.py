@@ -1,6 +1,7 @@
 """Core task operations for the To-Do List project (Member 2).
 
-This module follows interface.txt. It never reads input, prints output,
+This module uses STRING task IDs (e.g. "01", "02") exclusively.
+It never reads input, prints output,
 or accesses files. Operations modify the given tasks list in place.
 """
 
@@ -10,17 +11,30 @@ from datetime import date
 PRIORITIES = ("High", "Medium", "Low")
 
 
+def _normalise_id(value):
+    """Validate a STRING ID and return its numeric value for comparison.
+
+    All stored IDs and task_id arguments must be strings.  "1" and "01"
+    represent the same task ID; integer 1 is not accepted.
+    """
+    if not isinstance(value, str) or not value.isascii() or not value.isdecimal():
+        return None
+    numeric_id = int(value)
+    return numeric_id if numeric_id > 0 else None
+
+
 def _valid_id(value):
-    """Return True for a positive integer ID (but not a Boolean)."""
-    return type(value) is int and value > 0
+    """Return True for a positive numeric string ID, never for an integer."""
+    return _normalise_id(value) is not None
 
 
 def _find_task(tasks, task_id):
-    """Find one task by its unique ID; return None if not found."""
-    if not isinstance(tasks, list) or not _valid_id(task_id):
+    """Find a task using a string ID; return None if not found."""
+    target = _normalise_id(task_id)
+    if not isinstance(tasks, list) or target is None:
         return None
     for task in tasks:
-        if isinstance(task, dict) and task.get("id") == task_id:
+        if isinstance(task, dict) and _normalise_id(task.get("id")) == target:
             return task
     return None
 
@@ -53,8 +67,9 @@ def _valid_tags(value):
 def add_task(tasks, title, priority, due_date=None, tags=None):
     """Append a new task; return its dict, or None for invalid data.
 
-    ID is max(existing integer IDs) + 1, or 1 if tasks is empty.
-    All existing tasks must use valid, unique positive integer IDs.
+    IDs are numeric STRINGS: "01", "02", "03", ...
+    All existing tasks must have unique, positive numeric-string IDs.
+    The new ID is max(existing numeric IDs) + 1, formatted as a string.
     """
     if not isinstance(tasks, list):
         return None
@@ -70,12 +85,13 @@ def add_task(tasks, title, priority, due_date=None, tags=None):
     for task in tasks:
         if not isinstance(task, dict) or not _valid_id(task.get("id")):
             return None
-        ids.append(task["id"])
+        ids.append(_normalise_id(task["id"]))
     if len(ids) != len(set(ids)):
         return None
 
+    next_id = max(ids, default=0) + 1
     new_task = {
-        "id": max(ids, default=0) + 1,
+        "id": f"{next_id:02d}",
         "title": title.strip(),
         "priority": priority,
         "completed": False,
