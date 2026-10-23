@@ -11,7 +11,7 @@
   {
     "id": "02",
     "title": "Play football",
-    "priority": "low",
+    "priority": "Low",
     "completed": false,
     "due_date": "2026-10-10",
     "tags": ["Exercise"]
