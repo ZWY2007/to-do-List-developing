@@ -6,8 +6,33 @@ def is_valid_date(s):
     try:
         datetime.strptime(s, "%Y-%m-%d")
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
+
+def validate_task(task: dict):
+    """检验单个task字段规范"""
+    required_keys = {"id", "title", "priority", "completed", "due_date", "tags"}
+    if not required_keys.issubset(task.keys()):
+        return False, f"Task{task.get('id')} is missing required keys, the current tasks will not be changed"
+    if not isinstance(task["id"], int) or task["id"] <= 0:
+        return False, f"Task{task.get('id')} is not a positive integer, the current tasks will not be changed"
+    if not isinstance(task["title"], str):
+        return False, f"Task{task.get('id')} is not a string, the current tasks will not be changed"
+    if task["priority"] not in ["Low", "Medium", "High"]:
+        return False, f"Task{task.get('id')} is not a valid priority, the current tasks will not be changed"
+    if not isinstance(task["completed"], bool):
+        return False, f"Task{task.get('id')} is not a boolean, the current tasks will not be changed"
+    if not is_valid_date(task["due_date"]):
+        return False, f"Task{task.get('id')} is not a valid date, the current tasks will not be changed"
+    if not isinstance(task["tags"], list):
+        return False, f"Task{task.get('id')} is not a list, the current tasks will not be changed"
+
+    return True, ""
+
+
+
+
+
 def load_tasks(file_path="tasks.json"):
     """主程序流程开始前对数据进行加载，从tasks.json中读取现有数据"""
 
@@ -39,56 +64,50 @@ def save_tasks(tasks, file_path="tasks.json"):
         print("Failed to save tasks")
         return False
 
-def import_tasks(tasks_1, file_path):
+def import_tasks(current_task, file_path):
     """用户从其他文件路径导入任务， task_1参数需输入当前任务库，file_path参数为用户输入文件路径， 函数中请求全局变量tasks，若导入文件合规，则给当前全局变量tasks赋值导入的
     tasks_imported"""
     print("The tasks is importing....")
-    global tasks
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             tasks_imported = json.load(f)
-            print(" Imported tasks are successfully loaded")
+            print("Imported tasks are successfully loaded")
 
     except FileNotFoundError:
         print(f"{file_path} file not found, the current tasks will not be changed")
-        return tasks_1
-
+        return current_task
+    except json.decoder.JSONDecodeError:
+        print(f"{file_path} is not valid json, the current tasks will not be changed")
+        return current_task
     except Exception as e:
         print(f"Failed to load tasks, error: {e}, the current tasks will not be changed")
-        return tasks_1
-    required_keys = {"id", "title", "priority", "completed", "due_date", "tags"}
-    for n in tasks_imported:
-        if not required_keys.issubset(n.keys()):
-            print(f"{n} is missing required keys, the current tasks will not be changed")
-            return tasks_1
-        if not isinstance(n["id"], int):
-            print(f"{n} is not a positive integer, the current tasks will not be changed")
-            return tasks_1
-        if not isinstance(n["title"], str):
-            print(f"{n} is not a string, the current tasks will not be changed")
-            return tasks_1
-        if n["priority"] not in ["Low", "Medium", "High"]:
-            print(f"{n} is not a valid priority, the current tasks will not be changed")
-            return tasks_1
-        if not isinstance(n["completed"], bool):
-            print(f"{n} is not a boolean, the current tasks will not be changed")
-            return tasks_1
-        if not is_valid_date(n["due_date"]):
-            print(f"{n} is not a valid date, the current tasks will not be changed")
-        if not isinstance(n["tags"], list):
-            print(f"{n} is not a list, the current tasks will not be changed")
-            return tasks_1
+        return current_task
+    if not isinstance(tasks_imported, list):
+        print("Imported file must be a list of tasks, current tasks unchanged")
+        return current_task
+    for task in tasks_imported:
+        check, msg = validate_task(task)
+        if check is False:
+            print(f"{msg}")
+            return current_task
+    id_collection = set()
+    for task in tasks_imported:
+        task_id = task.get("id")
+        if task_id in id_collection:
+            print(f"id={task_id} is repeated, the current tasks will not be changed")
+            return current_task
+        id_collection.add(task_id)
     print("Do you want to use the imported tasks to replace the current tasks?(not saved yet) Please enter [Yes] or [No]")
     while True:
         choice = input().lower()
         if choice == "yes":
-            tasks = tasks_imported
             print("Tasks are successfully imported")
-            return tasks
+            return tasks_imported
         elif choice == "no":
-            return tasks_1
+            return current_task
         else:
             print("Please enter valid option")
+
 
 
 
