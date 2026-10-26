@@ -1,7 +1,12 @@
 from task_operations import add_task, modify_task, delete_task, toggle_completed, set_priority
 from optional_functions import filter_tasks, sort_tasks, get_statistics
 from file_IO import load_tasks, save_tasks, import_tasks
-from validation import validate_title, validate_task_id, validate_due_date, validate_priority, validate_tags, validate_menu_choice 
+from validation import (
+    validate_title, validate_task_id, validate_due_date,
+    validate_priority, validate_tags, validate_menu_choice,
+    validate_completed_filter,
+)
+
 
 def welcome_message(): # print the welcome message
     print("Welcome to the Task Management System!")
@@ -23,7 +28,7 @@ def show_menu(): # print the menu options,return the user input
     print("0. Exit")
     choice = input("Please enter option number: ")
     try:
-        choice = validate_menu_choice(choice)
+        choice = validate_menu_choice(choice, ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
     except ValueError as e:
         print(e)
         return None
@@ -38,7 +43,7 @@ def show_filter_submenu(): # print the filter submenu options,return the user in
     print("0. Back to main menu")
     choice = input("Please enter option number: ")
     try:
-        choice = validate_menu_choice(choice)
+        choice = validate_menu_choice(choice,["0","1","2","3","4"])
     except ValueError as e:
         print(e)
         return None
@@ -52,7 +57,7 @@ def show_sort_submenu(): # print the sort submenu options,return the user input
     print("0. Back to main menu")
     choice = input("Please enter option number: ")
     try:
-        choice = validate_menu_choice(choice)
+        choice = validate_menu_choice(choice,["0","1","2","3"])
     except ValueError as e:
         print(e)
         return None
@@ -87,29 +92,20 @@ def main():  # main loop of the program, handle user input and call correspondin
         if opt == "1":
             # Add task
             print("--- Add Task ---")
-            title = input("Task title: ").strip()
-            if not validate_title(title):
-                print("Invalid task title.")
+            try:
+                title = validate_title(input("Task title: "))
+                priority = validate_priority(input("Priority (High/Medium/Low): "))
+                due_date = validate_due_date(input("Due date(YYYY-MM-DD): "))
+                tags = validate_tags(input("Tags(space-separated): "))
+            except ValueError as e:
+                print("Invalid input:", e)
                 continue
-            priority = input("Priority (High/Medium/Low): ")
-            if not validate_priority(priority):
-                print("Invalid priority.")
-                continue
-            due_date = input("Due date(YYYY-MM-DD): ").strip()
-            if not validate_due_date(due_date):
-                print("Invalid due date.")
-                continue
-            # 空输入转为None
-            if due_date == "":
-                due_date = None
-            tags = input("Tags(space-separated): ").split()
-            if not validate_tags(tags):
-                print("Invalid tags.")
-                continue
-            success = add_task(tasks, title, priority, due_date, tags)
-            if success:
+            if add_task(tasks, title, priority, due_date, tags):
                 print("Task added successfully.")
                 has_change = True
+            else:
+                print("Failed to add task.")
+
 
         elif opt == "2":
             # View all tasks
@@ -120,71 +116,60 @@ def main():  # main loop of the program, handle user input and call correspondin
             # Modify task
             print("--- Modify Task ---")
             try:
-                tid = int(input("Enter task ID to modify: "))
-            except ValueError:
-                print("Error: Task ID must be integer!")
+                tid = validate_task_id(input("Enter task ID to modify: "))
+            except ValueError as e:
+                print("Invalid task ID:", e)
                 continue
-            if not validate_task_id(tasks, tid):
-                print(f"Task with id {tid} does not exist.")
-                continue
+
             new_info = {}
-            fields = [
-                ("title", "New title (enter to skip): "),
-                ("priority", "New priority (enter to skip): "),
-            ]
-            for k, prompt in fields:
-                val = input(prompt).strip()
-                if val:
-                    if k == "title":
-                        if not validate_title(val):
-                            print("Invalid title.")
-                            continue
-                    if k == "priority":
-                        if not validate_priority(val):
-                            print("Invalid priority.")
-                            continue
-                    new_info[k] = val
-            # due_date特殊处理,无论是否为空，都要传入payload，None表示空
-            due_val = input("New due date (YYYY-MM-DD, enter to skip): ").strip()
-            if due_val:
-                if not validate_due_date(due_val):
-                    print("Invalid due date.")
-                    continue
-                new_info["due_date"] = due_val
-            tags = input("New tags (space split, enter to skip): ").split()
-            if not validate_tags(tags):
-                print("Invalid tags.")
+            try:
+                title_raw = input("New title (enter to skip): ").strip()
+                if title_raw:
+                    new_info["title"] = validate_title(title_raw)
+
+                priority_raw = input("New priority (enter to skip): ").strip()
+                if priority_raw:
+                    new_info["priority"] = validate_priority(priority_raw)
+
+                date_raw = input("New due date (YYYY-MM-DD, enter to skip): ").strip()
+                if date_raw:
+                    new_info["due_date"] = validate_due_date(date_raw)
+
+                tags_raw = input("New tags (space split, enter to skip): ").strip()
+                if tags_raw:
+                    new_info["tags"] = validate_tags(tags_raw)
+            except ValueError as e:
+                print("Invalid input:", e)
                 continue
-            if tags:
-                new_info["tags"] = tags
-            success = modify_task(tasks, tid, new_info)
-            if success:
+
+            if not new_info:
+                print("No changes entered.")
+                continue
+            if modify_task(tasks, tid, new_info):
                 print("Task modified successfully.")
                 has_change = True
             else:
-                print("Failed to modify task.")
+                print("Failed to modify task (check ID and values).")
 
         elif opt == "4":
             # Delete task
             print("--- Delete Task ---")
             try:
-                tid = int(input("Enter task ID to delete: "))
-            except ValueError:
-                print("Error: Task ID must be integer!")
+                tid = validate_task_id(input("Enter task ID to delete: "))
+            except ValueError as e:
+                print("Invalid task ID:", e)
                 continue
-            if not validate_task_id(tasks, tid):
-                print(f"Task with id {tid} does not exist.")
-                continue
-            # 先查找任务
             found_task = None
-            for t in tasks:
-                if t["id"] == tid:
-                    found_task = t
-                    break
+            for task in tasks:
+                try:
+                    if validate_task_id(task["id"]) == tid:
+                        found_task = task
+                        break
+                except (ValueError, TypeError, KeyError):
+                    continue
             if found_task is None:
                 print(f"Task with id {tid} does not exist.")
                 continue
-            # 展示任务信息 + 用户确认
             print("\nTask information to delete:")
             print(f"ID: {found_task['id']}")
             print(f"Title: {found_task['title']}")
@@ -192,73 +177,81 @@ def main():  # main loop of the program, handle user input and call correspondin
             print(f"Completed: {found_task['completed']}")
             print(f"Due date: {found_task['due_date']}")
             print(f"Tags: {found_task['tags']}")
-            confirm = input("\nAre you sure you want to DELETE this task? [Yes/No]: ").lower()
+            confirm = input("\nAre you sure you want to DELETE this task? [Yes/No]: ").strip().lower()
             if confirm != "yes":
                 print("Delete cancelled.")
                 continue
-            success = delete_task(tasks, tid)
-            if success:
+            if delete_task(tasks, tid):
                 print("Task deleted successfully.")
                 has_change = True
+            else:
+                print("Failed to delete task.")
+
 
         elif opt == "5":
             # Toggle completed status
             print("--- Toggle Task Completion ---")
             try:
-                tid = int(input("Enter task ID: "))
-            except ValueError:
-                print("Error: Task ID must be integer!")
+                tid = validate_task_id(input("Enter task ID: "))
+            except ValueError as e:
+                print("Invalid task ID:", e)
                 continue
-            if not validate_task_id(tasks, tid):
-                print(f"Task with id {tid} does not exist.")
-                continue
-            success = toggle_completed(tasks, tid)
-            if success:
+            if toggle_completed(tasks, tid):
                 print("Task completion status toggled.")
                 has_change = True
+            else:
+                print(f"Task with id {tid} does not exist.")
+
 
         elif opt == "6":
             # Set priority
             print("--- Set Task Priority ---")
             try:
-                tid = int(input("Enter task ID: "))
-            except ValueError:
-                print("Error: Task ID must be integer!")
+                tid = validate_task_id(input("Enter task ID: "))
+                new_p = validate_priority(input("Set priority (High/Medium/Low): "))
+            except ValueError as e:
+                print("Invalid input:", e)
                 continue
-            if not validate_task_id(tasks, tid):
-                print(f"Task with id {tid} does not exist.")
-                continue
-            new_p = input("Set priority (High/Medium/Low): ")
-            success = set_priority(tasks, tid, new_p)
-            if success:
+            if set_priority(tasks, tid, new_p):
                 print("Task priority set successfully.")
                 has_change = True
+            else:
+                print("Failed to set priority (check ID).")
+
 
         elif opt == "7":
-            # Filter tasks，调用子菜单
+            # Filter tasks
             print("--- Filter Tasks ---")
             sub_opt = show_filter_submenu()
-            if sub_opt == "0":
-                print("Back to main menu.")
+            if sub_opt is None or sub_opt == "0":
                 continue
             arg = input("Filter value: ")
-            if sub_opt == "1":  # sub_opt=1：按完成状态筛选
-                if arg.lower() in ["true", "yes", "1"]:
-                    arg = True   # 字符串 → 布尔True
-                elif arg.lower() in ["false", "no", "0"]:
-                    arg = False  # 字符串 → 布尔False
-            filtered_list = filter_tasks(tasks, sub_opt, arg)
+            try:
+                if sub_opt == "1":
+                    arg = validate_completed_filter(arg)
+                elif sub_opt == "2":
+                    arg = validate_priority(arg)
+                elif sub_opt == "3":
+                    arg = validate_due_date(arg)
+                filtered_list = filter_tasks(tasks, sub_opt, arg)
+            except ValueError as e:
+                print("Invalid filter:", e)
+                continue
             view_all_tasks(filtered_list)
 
         elif opt == "8":
-            # Sort tasks，调用子菜单
+            # Sort tasks
             print("--- Sort Tasks ---")
             sort_sub_opt = show_sort_submenu()
-            if sort_sub_opt == "0":
-                print("Back to main menu.")
+            if sort_sub_opt is None or sort_sub_opt == "0":
                 continue
-            sorted_list = sort_tasks(tasks, sort_sub_opt)
+            try:
+                sorted_list = sort_tasks(tasks, sort_sub_opt)
+            except ValueError as e:
+                print("Invalid sort option:", e)
+                continue
             view_all_tasks(sorted_list)
+
 
         elif opt == "9":
             # Statistics
