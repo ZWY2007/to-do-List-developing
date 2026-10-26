@@ -1,7 +1,9 @@
 # edited by Zhu Wenyuan
 
+
 import json
 from datetime import datetime
+from validation import validate_task_list
 def is_valid_date(s):
     try:
         datetime.strptime(s, "%Y-%m-%d")
@@ -85,18 +87,11 @@ def import_tasks(current_task, file_path):
     if not isinstance(tasks_imported, list):
         print("Imported file must be a list of tasks, current tasks unchanged")
         return current_task
-    for task in tasks_imported:
-        check, msg = validate_task(task)
-        if check is False:
-            print(f"{msg}")
-            return current_task
-    id_collection = set()
-    for task in tasks_imported:
-        task_id = task.get("id")
-        if task_id in id_collection:
-            print(f"id={task_id} is repeated, the current tasks will not be changed")
-            return current_task
-        id_collection.add(task_id)
+    try:
+        tasks_imported = validate_task_list(tasks_imported)
+    except ValueError as e:
+        print(f"Invalid imported tasks: {e}. Current tasks unchanged.")
+        return current_task
     print("Do you want to use the imported tasks to replace the current tasks?(not saved yet) Please enter [Yes] or [No]")
     while True:
         choice = input().lower()
