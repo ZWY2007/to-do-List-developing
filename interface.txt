@@ -114,7 +114,7 @@ Validation functions raise ValueError for invalid input.
 They do not call input() or print().
 
 
-8. SHARED RULES
+7. SHARED RULES
 
 - Function names and parameters must remain consistent.
 - Every current task must have a unique ID by its numeric value.
