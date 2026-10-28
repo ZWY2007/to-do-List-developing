@@ -29,9 +29,12 @@ import_tasks(tasks, file_path)
 Intended behavior: imported tasks must be validated, then the user must
 confirm replacement; on success return the imported list, on cancellation
 or error keep/return the original list.
-NOTE: Member 1's current import_tasks() still expects integer IDs.
-Imported task IDs must follow the shared STRING ID rule.
-validate_task_list(data) may be reused to check imported data.
+The current implementation validates imported data with
+validate_task_list() before asking the user to confirm replacement.
+Imported IDs must be positive numeric strings. Numeric equivalents
+such as "1" and "01" represent the same task ID, and duplicate
+numeric IDs are rejected.
+Invalid data or cancellation leaves the current task list unchanged.
 
 3. MEMBER 2 - ESSENTIAL TASK FUNCTIONS
 
