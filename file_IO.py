@@ -12,7 +12,7 @@ def is_valid_date(s):
         return False
 
 def validate_task(task: dict):
-    """检验单个task字段规范"""
+    """Check the specification of a single task field"""
     required_keys = {"id", "title", "priority", "completed", "due_date", "tags"}
     if not required_keys.issubset(task.keys()):
         return False, f"Task{task.get('id')} is missing required keys, the current tasks will not be changed"
@@ -36,7 +36,7 @@ def validate_task(task: dict):
 
 
 def load_tasks(file_path="tasks.json"):
-    """主程序流程开始前对数据进行加载，从tasks.json中读取现有数据"""
+    """Load data before the start of the main program flow, and read existing data from tasks.json"""
 
     print("The tasks is loading....")
     try:
@@ -52,7 +52,8 @@ def load_tasks(file_path="tasks.json"):
         return None
 
 def save_tasks(tasks, file_path="tasks.json"):
-    """对数据进行保存，可以在程序执行中或程序即将终止时执行保存操作"""
+    """Save the data. The saving operation can be performed during program execution or when the program is about to terminate."""
+
     try:
         with open(file_path, "w", encoding="utf-8") as f:
             print("The tasks is saving....")
@@ -67,8 +68,7 @@ def save_tasks(tasks, file_path="tasks.json"):
         return False
 
 def import_tasks(current_task, file_path):
-    """用户从其他文件路径导入任务， task_1参数需输入当前任务库，file_path参数为用户输入文件路径， 函数中请求全局变量tasks，若导入文件合规，则给当前全局变量tasks赋值导入的
-    tasks_imported"""
+    """Import the tasks from the other file path."""
     print("The tasks is importing....")
     try:
         with open(file_path, "r", encoding="utf-8") as f:
